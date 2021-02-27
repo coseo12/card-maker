@@ -6,44 +6,13 @@ import Header from '../header/header';
 import Preview from '../preview/preview';
 import styles from './maker.module.css';
 
-const Maker = ({ authService,FileInput }) => {
-  const [cards, setCards] = useState({
-    1: {
-      id: '1',
-      name: 'Seo1',
-      company: 'Northstar',
-      theme: 'dark',
-      title: 'Software Engineer',
-      email: 'coseo12@gmail.com',
-      message: 'go for it',
-      fileName: 'test',
-      fileURL: null,
-    },
-    2: {
-      id: '2',
-      name: 'Seo2',
-      company: 'Northstar',
-      theme: 'light',
-      title: 'Software Engineer',
-      email: 'coseo12@gmail.com',
-      message: 'go for it',
-      fileName: 'test',
-      fileURL: null,
-    },
-    3: {
-      id: '3',
-      name: 'Seo3',
-      company: 'Northstar',
-      theme: 'colorful',
-      title: 'Software Engineer',
-      email: 'coseo12@gmail.com',
-      message: 'go for it',
-      fileName: 'test',
-      fileURL: null,
-    },
-  });
-
-  const history = useHistory();
+const Maker = ({ authService, FileInput, cardRepository }) => {
+  const {
+    push,
+    location: { state },
+  } = useHistory();
+  const [cards, setCards] = useState({});
+  const [userId, setUserId] = useState(state && state.id);
 
   const onLogout = () => {
     authService.logout();
@@ -55,6 +24,7 @@ const Maker = ({ authService,FileInput }) => {
       updated[card.id] = card;
       return updated;
     });
+    cardRepository.saveCard(userId, card);
   };
 
   const deleteCard = card => {
@@ -63,12 +33,25 @@ const Maker = ({ authService,FileInput }) => {
       delete updated[card.id];
       return updated;
     });
+    cardRepository.removeCard(userId, card);
   };
 
   useEffect(() => {
+    if (!userId) {
+      return;
+    }
+    const stopSync = cardRepository.syncCards(userId, cards => {
+      setCards(cards);
+    });
+    return () => stopSync();
+  }, [userId, cardRepository]);
+
+  useEffect(() => {
     authService.onAuthchange(user => {
-      if (!user) {
-        history.push('/');
+      if (user) {
+        setUserId(userId);
+      } else {
+        push('/');
       }
     });
   });
