@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useHistory } from 'react-router-dom';
 import Editor from '../editor/editor';
 import Footer from '../footer/footer';
@@ -14,9 +14,9 @@ const Maker = ({ authService, FileInput, cardRepository }) => {
   const [cards, setCards] = useState({});
   const [userId, setUserId] = useState(state && state.id);
 
-  const onLogout = () => {
+  const onLogout = useCallback(() => {
     authService.logout();
-  };
+  }, [authService]);
 
   const createOrUpdateCard = card => {
     setCards(cards => {
@@ -54,7 +54,7 @@ const Maker = ({ authService, FileInput, cardRepository }) => {
         push('/');
       }
     });
-  });
+  }, [authService, push, userId]);
 
   return (
     <section className={styles.maker}>
